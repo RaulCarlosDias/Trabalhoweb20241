@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busca de Países </title>
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+    <div class="container">
+        <h1>Busca de Países "Nomes em inglês"</h1>
+        <input type="text" id="searchInput" placeholder="Digite o nome do país">
+        <button onclick="searchCountry()">Buscar</button>
+        <div id="errorMessages"></div>
+        <div id="countryDetails"></div>
+    </div>
+
+    <script>
+        function searchCountry() {
+            const searchInput = document.getElementById('searchInput').value;
+            
+            // Verificação se o campo de busca está vazio
+            if (!searchInput.trim()) {
+                displayErrorMessage('Por favor, digite o nome do país.');
+                return; // Retorna para evitar fazer a requisição à API
+            }
+
+            fetch(`https://restcountries.com/v3/name/${searchInput}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao buscar país. Por favor, tente novamente.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Limpa o conteúdo anterior e as mensagens de erro
+                    document.getElementById('countryDetails').innerHTML = '';
+                    clearErrorMessages();
+
+                    // Verifica se o país foi encontrado
+                    if (data.status === 404) {
+                        displayErrorMessage('País não encontrado.');
+                    } else {
+                        // Exibe os detalhes do país encontrado
+                        const country = data[0];
+                        const countryDetails = `
+                            <h2>${country.name.common}</h2>
+                            <p><strong>Capital:</strong> ${country.capital}</p>
+                            <p><strong>População:</strong> ${country.population}</p>
+                            <p><strong>Região:</strong> ${country.region}</p>
+                            <p><strong>Sub-região:</strong> ${country.subregion}</p>
+                        `;
+                        document.getElementById('countryDetails').innerHTML = countryDetails;
+                    }
+                })
+                .catch(error => {
+                    // Exibe mensagem de erro
+                    displayErrorMessage(error.message);
+                });
+        }
+
+        function displayErrorMessage(message) {
+            // Exibe mensagem de erro
+            document.getElementById('errorMessages').innerHTML = message;
+        }
+
+        function clearErrorMessages() {
+            // Limpa as mensagens de erro
+            document.getElementById('errorMessages').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
