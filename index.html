@@ -39,11 +39,11 @@
                     clearErrorMessages();
 
                     // Verifica se o país foi encontrado
-                    if (data.status === 404) {
+                    const country = data.find(country => country.name.common.toLowerCase() === searchInput.toLowerCase());
+                    if (!country) {
                         displayErrorMessage('País não encontrado.');
                     } else {
                         // Exibe os detalhes do país encontrado
-                        const country = data[0];
                         const countryDetails = `
                             <h2>${country.name.common}</h2>
                             <p><strong>Capital:</strong> ${country.capital}</p>
