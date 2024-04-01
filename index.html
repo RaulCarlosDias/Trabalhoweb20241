@@ -1,32 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Busca de Países </title>
+    <title>Busca de Países</title>
     <link rel="stylesheet" href="styles.css">
-
 </head>
 <body>
     <div class="container">
         <h1>Busca de Países "Nomes em inglês"</h1>
-        <input type="text" id="searchInput" placeholder="Digite o nome do país">
-        <button onclick="searchCountry()">Buscar</button>
-        <div id="errorMessages"></div>
-        <div id="countryDetails"></div>
+        <input type="text" id="inputBusca" placeholder="Digite o nome do país">
+        <button onclick="buscarPais()">Buscar</button>
+        <div id="mensagensErro"></div>
+        <div id="detalhesPais"></div>
+        <div id="buscasAnteriores"></div>
     </div>
 
     <script>
-        function searchCountry() {
-            const searchInput = document.getElementById('searchInput').value;
+        // Array para armazenar os detalhes de todas as pesquisas
+        let historicoBusca = [];
+
+        function buscarPais() {
+            const entradaBusca = document.getElementById('inputBusca').value;
             
             // Verificação se o campo de busca está vazio
-            if (!searchInput.trim()) {
-                displayErrorMessage('Por favor, digite o nome do país.');
+            if (!entradaBusca.trim()) {
+                exibirMensagemErro('Por favor, digite o nome do país.');
                 return; // Retorna para evitar fazer a requisição à API
             }
 
-            fetch(`https://restcountries.com/v3/name/${searchInput}`)
+            fetch(`https://restcountries.com/v3/name/${entradaBusca}`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Erro ao buscar país. Por favor, tente novamente.');
@@ -34,40 +37,64 @@
                     return response.json();
                 })
                 .then(data => {
-                    // Limpa o conteúdo anterior e as mensagens de erro
-                    document.getElementById('countryDetails').innerHTML = '';
-                    clearErrorMessages();
+                    // Limpa as mensagens de erro
+                    limparMensagensErro();
 
                     // Verifica se o país foi encontrado
-                    const country = data.find(country => country.name.common.toLowerCase() === searchInput.toLowerCase());
-                    if (!country) {
-                        displayErrorMessage('País não encontrado.');
+                    const paisEncontrado = data.find(pais => pais.name.common.toLowerCase() === entradaBusca.toLowerCase());
+                    if (!paisEncontrado) {
+                        exibirMensagemErro('País não encontrado.');
                     } else {
                         // Exibe os detalhes do país encontrado
-                        const countryDetails = `
-                            <h2>${country.name.common}</h2>
-                            <p><strong>Capital:</strong> ${country.capital}</p>
-                            <p><strong>População:</strong> ${country.population}</p>
-                            <p><strong>Região:</strong> ${country.region}</p>
-                            <p><strong>Sub-região:</strong> ${country.subregion}</p>
+                        const detalhesPais = `
+                            <h2>${paisEncontrado.name.common}</h2>
+                            <p><strong>Capital:</strong> ${paisEncontrado.capital}</p>
+                            <p><strong>População:</strong> ${paisEncontrado.population}</p>
+                            <p><strong>Região:</strong> ${paisEncontrado.region}</p>
+                            <p><strong>Sub-região:</strong> ${paisEncontrado.subregion}</p>
                         `;
-                        document.getElementById('countryDetails').innerHTML = countryDetails;
+                        document.getElementById('detalhesPais').innerHTML = detalhesPais;
+
+                        // Adiciona a pesquisa anterior ao histórico de buscas
+                        historicoBusca.push(paisEncontrado); // Adiciona os detalhes do país ao histórico de buscas
+
+                        // Atualiza a exibição das buscas anteriores
+                        exibirBuscasAnteriores();
                     }
                 })
                 .catch(error => {
                     // Exibe mensagem de erro
-                    displayErrorMessage(error.message);
+                    exibirMensagemErro(error.message);
                 });
         }
 
-        function displayErrorMessage(message) {
+        function exibirMensagemErro(mensagem) {
             // Exibe mensagem de erro
-            document.getElementById('errorMessages').innerHTML = message;
+            document.getElementById('mensagensErro').innerHTML = mensagem;
         }
 
-        function clearErrorMessages() {
+        function limparMensagensErro() {
             // Limpa as mensagens de erro
-            document.getElementById('errorMessages').innerHTML = '';
+            document.getElementById('mensagensErro').innerHTML = '';
+        }
+
+        function exibirBuscasAnteriores() {
+            const containerBuscasAnteriores = document.getElementById('buscasAnteriores');
+            containerBuscasAnteriores.innerHTML = ''; // Limpa as buscas anteriores antes de atualizar
+
+            // Adiciona cada busca anterior ao contêiner
+            historicoBusca.forEach(pais => {
+                const detalhesPais = `
+                    <h2>${pais.name.common}</h2>
+                    <p><strong>Capital:</strong> ${pais.capital}</p>
+                    <p><strong>População:</strong> ${pais.population}</p>
+                    <p><strong>Região:</strong> ${pais.region}</p>
+                    <p><strong>Sub-região:</strong> ${pais.subregion}</p>
+                `;
+                const buscaAnterior = document.createElement('div');
+                buscaAnterior.innerHTML = detalhesPais;
+                containerBuscasAnteriores.appendChild(buscaAnterior);
+            });
         }
     </script>
 </body>
